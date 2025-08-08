@@ -1,1 +1,60 @@
-Hey
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Chat with [Character Name]</title>
+    <style>
+        body { font-family: sans-serif; max-width: 600px; margin: auto; padding: 20px; }
+        #chat-log { border: 1px solid #ccc; height: 300px; overflow-y: scroll; padding: 10px; margin-bottom: 10px; }
+        #userInput { width: 80%; padding: 8px; }
+        button { padding: 8px; }
+    </style>
+</head>
+<body>
+    <h1>Chat with [Character Name]</h1>
+    <div id="chat-log"></div>
+    <input type="text" id="userInput" placeholder="Ask a question...">
+    <button onclick="sendMessage()">Send</button>
+
+    <script>
+        const chatLog = document.getElementById('chat-log');
+        const userInput = document.getElementById('userInput');
+        // REPLACE WITH YOUR CLOUD FUNCTION URL
+        const backendUrl = 'https://your-cloud-function-url/ask-character';
+
+        async function sendMessage() {
+            const userText = userInput.value;
+            if (!userText) return;
+
+            appendMessage('You', userText);
+            userInput.value = '';
+
+            try {
+                const response = await fetch(backendUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ prompt: userText })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Network response was not ok.');
+                }
+
+                const data = await response.json();
+                appendMessage('[Character Name]', data.response);
+
+            } catch (error) {
+                console.error('Error:', error);
+                appendMessage('System', 'Sorry, I am having trouble connecting.');
+            }
+        }
+
+        function appendMessage(sender, message) {
+            const messageElement = document.createElement('p');
+            messageElement.innerHTML = `<strong>${sender}:</strong> ${message}`;
+            chatLog.appendChild(messageElement);
+            chatLog.scrollTop = chatLog.scrollHeight;
+        }
+    </script>
+</body>
+</html>
